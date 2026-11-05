@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eCommerce Bookstore - Storefront</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20 font-extrabold text-xl">
+                    📚
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 tracking-tight leading-none">PageTurner</h1>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">eCommerce Bookstore</p>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex-1 max-w-md mx-6 hidden md:block">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search by title or author..." 
+                        class="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
+                    />
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center space-x-3">
+                <button 
+                    onclick="fetchBooks()" 
+                    class="p-2 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-xl transition"
+                    title="Refresh Catalog"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </button>
+                <div id="catalogStats" class="text-xs font-semibold px-3 py-1.5 bg-brand-50 text-brand-700 rounded-full border border-brand-200">
+                    Loading...
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Search Bar -->
+        <div class="p-3 border-t border-slate-100 md:hidden bg-slate-50">
+            <div class="relative">
+                <input 
+                    type="text" 
+                    id="mobileSearchInput" 
+                    placeholder="Search by title or author..." 
+                    class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+                <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastContainer" class="fixed top-20 right-4 z-50 flex flex-col space-y-2 max-w-md w-full pointer-events-none"></div>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Hero Header -->
+        <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-brand-100 text-brand-800 mb-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse"></span>
+                    Live Inventory
+                </span>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Featured Bookstore Catalog</h2>
+                <p class="text-sm text-slate-500 mt-1">Discover bestsellers, classics, and engineering titles with real-time stock updates.</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+                <span>API Endpoint:</span>
+                <code class="px-2 py-1 bg-slate-200 text-slate-800 rounded font-mono font-medium">/api/books</code>
+            </div>
+        </div>
+
+        <!-- Catalog Container -->
+        <div id="loadingState" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading Skeletons -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 animate-pulse space-y-4">
+                <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+                <div class="h-6 bg-slate-200 rounded w-3/4"></div>
+                <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                <div class="h-16 bg-slate-100 rounded"></div>
+                <div class="h-10 bg-slate-200 rounded"></div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 animate-pulse space-y-4">
+                <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+                <div class="h-6 bg-slate-200 rounded w-3/4"></div>
+                <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                <div class="h-16 bg-slate-100 rounded"></div>
+                <div class="h-10 bg-slate-200 rounded"></div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 animate-pulse space-y-4">
+                <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+                <div class="h-6 bg-slate-200 rounded w-3/4"></div>
+                <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                <div class="h-16 bg-slate-100 rounded"></div>
+                <div class="h-10 bg-slate-200 rounded"></div>
+            </div>
+        </div>
+
+        <div id="booksGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <div class="text-4xl mb-3">🔍</div>
+            <h3 class="text-lg font-bold text-slate-800">No books found</h3>
+            <p class="text-sm text-slate-500 mt-1 max-w-sm mx-auto">Try adjusting your search criteria or refresh the catalog.</p>
+            <button onclick="clearSearch()" class="mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                Clear Search Filter
+            </button>
+        </div>
+    </main>
+
+    <!-- Buy Now Modal -->
+    <div id="orderModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform scale-95 transition-transform duration-200" id="modalCard">
+            
+            <!-- Modal Header -->
+            <div class="px-6 pt-6 pb-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-brand-600">Quick Purchase</span>
+                    <h3 id="modalBookTitle" class="text-lg font-bold text-slate-900 mt-0.5 leading-snug">Book Title</h3>
+                    <p id="modalBookAuthor" class="text-xs text-slate-500">by Author Name</p>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-200/50 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="orderForm" onsubmit="submitOrder(event)" class="p-6 space-y-5">
+                <input type="hidden" id="modalBookId" />
+
+                <!-- Price and Available Stock Summary -->
+                <div class="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div>
+                        <span class="text-xs text-slate-500 block">Unit Price</span>
+                        <span id="modalUnitPrice" class="text-base font-extrabold text-slate-900">$0.00</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 block">Available Stock</span>
+                        <span id="modalStockStatus" class="text-base font-extrabold text-brand-700">0 units</span>
+                    </div>
+                </div>
+
+                <!-- Quantity Selector -->
+                <div>
+                    <label for="orderQuantity" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                        Select Quantity
+                    </label>
+                    <div class="flex items-center space-x-3">
+                        <button 
+                            type="button" 
+                            onclick="adjustQuantity(-1)" 
+                            class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center transition"
+                        >-</button>
+                        <input 
+                            type="number" 
+                            id="orderQuantity" 
+                            min="1" 
+                            value="1" 
+                            oninput="updateTotalPrice()" 
+                            class="flex-1 text-center font-bold text-slate-900 py-2 bg-slate-50 border border-slate-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            required
+                        />
+                        <button 
+                            type="button" 
+                            onclick="adjustQuantity(1)" 
+                            class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center transition"
+                        >+</button>
+                    </div>
+                </div>
+
+                <!-- Total Summary -->
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <span class="text-sm font-medium text-slate-600">Order Total</span>
+                    <span id="modalTotalPrice" class="text-2xl font-black text-brand-700">$0.00</span>
+                </div>
+
+                <!-- Submit & Cancel Buttons -->
+                <div class="flex space-x-3 pt-2">
+                    <button 
+                        type="button" 
+                        onclick="closeModal()" 
+                        class="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        id="submitOrderBtn" 
+                        class="flex-1 py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-lg shadow-brand-600/25 transition flex items-center justify-center space-x-2"
+                    >
+                        <span>Confirm Purchase</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400">
+            <p>PageTurner Bookstore &copy; 2026. Built with Spring Boot, H2 Database & Tailwind CSS.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let allBooks = [];
+        let activeBook = null;
+
+        // Fetch Books on Page Load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchBooks();
+
+            // Bind Search Inputs
+            const searchInput = document.getElementById('searchInput');
+            const mobileSearchInput = document.getElementById('mobileSearchInput');
+
+            const handleSearch = (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                filterBooks(query);
+            };
+
+            searchInput.addEventListener('input', handleSearch);
+            mobileSearchInput.addEventListener('input', handleSearch);
+        });
+
+        // Fetch books from GET /api/books
+        async function fetchBooks() {
+            showLoading(true);
+            try {
+                const response = await fetch('/api/books');
+                if (!response.ok) {
+                    throw new Error(`Failed to load books: ${response.status}`);
+                }
+                allBooks = await response.json();
+                renderBooks(allBooks);
+                updateStats(allBooks);
+            } catch (error) {
+                console.error('Error fetching books:', error);
+                showToast('Failed to load books catalog. Please check backend connection.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Render Book Cards into Grid
+        function renderBooks(books) {
+            const booksGrid = document.getElementById('booksGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (!books || books.length === 0) {
+                booksGrid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            booksGrid.classList.remove('hidden');
+
+            booksGrid.innerHTML = books.map(book => {
+                const isOutOfStock = book.stock <= 0;
+                const isLowStock = book.stock > 0 && book.stock <= 5;
+
+                let stockBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                let stockText = `${book.stock} in stock`;
+
+                if (isOutOfStock) {
+                    stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                    stockText = 'Out of Stock';
+                } else if (isLowStock) {
+                    stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                    stockText = `Only ${book.stock} left`;
+                }
+
+                return `
+                    <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
+                        <div>
+                            <!-- Header / Category Badge -->
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-lg border ${stockBadgeClass}">
+                                    ${stockText}
+                                </span>
+                                <span class="text-xs font-mono font-medium text-slate-400">ID: #${book.id}</span>
+                            </div>
+
+                            <!-- Book Title & Author -->
+                            <h3 class="text-lg font-bold text-slate-900 leading-snug group-hover:text-brand-700 transition">
+                                ${escapeHtml(book.title)}
+                            </h3>
+                            <p class="text-xs font-medium text-slate-500 mt-1 mb-3">
+                                by <span class="text-slate-700 font-semibold">${escapeHtml(book.author)}</span>
+                            </p>
+
+                            <!-- Description -->
+                            <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                                ${escapeHtml(book.description || 'No description available for this title.')}
+                            </p>
+                        </div>
+
+                        <!-- Card Footer: Price & Buy Button -->
+                        <div class="pt-4 border-t border-slate-100 flex items-center justify-between mt-2">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-medium block uppercase tracking-wider">Price</span>
+                                <span class="text-xl font-extrabold text-slate-900">$${Number(book.price).toFixed(2)}</span>
+                            </div>
+                            <button 
+                                onclick="openOrderModal(${book.id})" 
+                                ${isOutOfStock ? 'disabled' : ''}
+                                class="px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center space-x-1.5 shadow-sm ${
+                                    isOutOfStock 
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
+                                    : 'bg-brand-600 hover:bg-brand-700 text-white shadow-brand-500/20 hover:shadow-brand-500/30'
+                                }"
+                            >
+                                <span>${isOutOfStock ? 'Sold Out' : 'Buy Now'}</span>
+                                ${!isOutOfStock ? '<span>&rarr;</span>' : ''}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter Books by Title or Author
+        function filterBooks(query) {
+            if (!query) {
+                renderBooks(allBooks);
+                return;
+            }
+            const filtered = allBooks.filter(book => 
+                (book.title && book.title.toLowerCase().includes(query)) ||
+                (book.author && book.author.toLowerCase().includes(query))
+            );
+            renderBooks(filtered);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('mobileSearchInput').value = '';
+            renderBooks(allBooks);
+        }
+
+        // Open Order Modal
+        function openOrderModal(bookId) {
+            activeBook = allBooks.find(b => b.id === bookId);
+            if (!activeBook) return;
+
+            document.getElementById('modalBookId').value = activeBook.id;
+            document.getElementById('modalBookTitle').innerText = activeBook.title;
+            document.getElementById('modalBookAuthor').innerText = `by ${activeBook.author}`;
+            document.getElementById('modalUnitPrice').innerText = `$${Number(activeBook.price).toFixed(2)}`;
+            document.getElementById('modalStockStatus').innerText = `${activeBook.stock} units in stock`;
+
+            const qtyInput = document.getElementById('orderQuantity');
+            qtyInput.value = 1;
+            qtyInput.max = activeBook.stock;
+
+            updateTotalPrice();
+
+            const modal = document.getElementById('orderModal');
+            const card = document.getElementById('modalCard');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            }, 10);
+        }
+
+        // Close Order Modal
+        function closeModal() {
+            const modal = document.getElementById('orderModal');
+            const card = document.getElementById('modalCard');
+            modal.classList.add('opacity-0');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                activeBook = null;
+            }, 200);
+        }
+
+        // Adjust Quantity
+        function adjustQuantity(delta) {
+            const input = document.getElementById('orderQuantity');
+            let current = parseInt(input.value, 10) || 1;
+            let next = current + delta;
+            if (next < 1) next = 1;
+            if (activeBook && next > activeBook.stock) next = activeBook.stock;
+            input.value = next;
+            updateTotalPrice();
+        }
+
+        function updateTotalPrice() {
+            if (!activeBook) return;
+            const input = document.getElementById('orderQuantity');
+            let qty = parseInt(input.value, 10) || 1;
+            if (qty < 1) qty = 1;
+            const total = qty * activeBook.price;
+            document.getElementById('modalTotalPrice').innerText = `$${total.toFixed(2)}`;
+        }
+
+        // Submit Order to POST /api/orders
+        async function submitOrder(event) {
+            event.preventDefault();
+            if (!activeBook) return;
+
+            const quantity = parseInt(document.getElementById('orderQuantity').value, 10);
+            if (!quantity || quantity < 1) {
+                showToast('Please enter a valid quantity of at least 1.', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitOrderBtn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Processing...</span>
+            `;
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bookId: activeBook.id,
+                        quantity: quantity
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showToast(`Purchase Confirmed! Bought ${data.quantity}x "${data.bookTitle}" for $${data.totalPrice.toFixed(2)}. Remaining stock: ${data.remainingStock}`, 'success');
+                    closeModal();
+                    // Refresh book list to reflect new stock
+                    await fetchBooks();
+                } else {
+                    showToast(data.message || 'Order failed due to insufficient stock.', 'error');
+                }
+            } catch (error) {
+                console.error('Order submission error:', error);
+                showToast('Network error while processing order. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const isSuccess = type === 'success';
+            const bgClass = isSuccess ? 'bg-emerald-900/90 text-white border-emerald-700' : 'bg-rose-900/90 text-white border-rose-700';
+            const icon = isSuccess ? '✓' : '✕';
+
+            toast.className = `pointer-events-auto flex items-start space-x-3 p-4 rounded-2xl shadow-xl border backdrop-blur-md transition-all duration-300 transform translate-x-12 opacity-0 ${bgClass}`;
+            toast.innerHTML = `
+                <div class="w-6 h-6 rounded-full ${isSuccess ? 'bg-emerald-500' : 'bg-rose-500'} flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                    ${icon}
+                </div>
+                <div class="flex-1 text-xs leading-relaxed font-medium">
+                    ${escapeHtml(message)}
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-white/60 hover:text-white text-xs font-bold ml-2">✕</button>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-12', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-12', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // UI Helpers
+        function showLoading(isLoading) {
+            const loadingState = document.getElementById('loadingState');
+            const booksGrid = document.getElementById('booksGrid');
+            if (isLoading) {
+                loadingState.classList.remove('hidden');
+                booksGrid.classList.add('hidden');
+            } else {
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        function updateStats(books) {
+            const count = books.length;
+            const inStockCount = books.reduce((acc, b) => acc + (b.stock > 0 ? b.stock : 0), 0);
+            document.getElementById('catalogStats').innerText = `${count} Titles (${inStockCount} in Stock)`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
